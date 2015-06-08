@@ -36,32 +36,11 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
  */
 class LocaleListener implements EventSubscriberInterface
 {
-    /**
-     * Append locales not in request header but in configured fallback.
-     */
-    const FALLBACK_MERGE = 'merge';
-
-    /**
-     * Only use locales from request.
-     */
-    const FALLBACK_REPLACE = 'replace';
-
-    /**
-     * Do not look into request.
-     */
-    const FALLBACK_HARDCODED = 'hardcoded';
 
     /**
      * @var LocaleChooser
      */
     private $chooser;
-
-    /**
-     * Whether to update the locale chooser to update the allowed languages.
-     *
-     * @var string|null One of the FALLBACK_ constants or empty.
-     */
-    private $fallback = null;
 
     /**
      * List of allowed locales to set on the LocaleChooser.
@@ -75,14 +54,12 @@ class LocaleListener implements EventSubscriberInterface
      *
      * @param LocaleChooser $chooser        The locale chooser to update.
      * @param array         $allowedLocales List of locales that are allowed.
-     * @param string        $fallback       One of the FALLBACK_* constants.
      *
      */
-    public function __construct(LocaleChooser $chooser, array $allowedLocales, $fallback = self::FALLBACK_HARDCODED)
+    public function __construct(LocaleChooser $chooser, array $allowedLocales)
     {
         $this->chooser = $chooser;
         $this->allowedLocales = $allowedLocales;
-        $this->fallback = $fallback;
     }
 
     /**
@@ -98,26 +75,6 @@ class LocaleListener implements EventSubscriberInterface
             return;
         }
         $this->chooser->setLocale($locale);
-
-        if (self::FALLBACK_HARDCODED == $this->fallback) {
-            return;
-        }
-
-        // expand language list to include base locales
-        // copy-pasted from Request::getPreferredLanguage
-        $preferredLanguages = $request->getLanguages();
-        $extendedPreferredLanguages = array();
-        foreach ($preferredLanguages as $language) {
-            $extendedPreferredLanguages[] = $language;
-            if (false !== $position = strpos($language, '_')) {
-                $superLanguage = substr($language, 0, $position);
-                if (!in_array($superLanguage, $preferredLanguages)) {
-                    $extendedPreferredLanguages[] = $superLanguage;
-                }
-            }
-        }
-        $order = array_intersect($this->allowedLocales, $extendedPreferredLanguages);
-        $this->chooser->setFallbackLocales($locale, $order, self::FALLBACK_REPLACE == $this->fallback);
     }
 
     /**
@@ -130,6 +87,14 @@ class LocaleListener implements EventSubscriberInterface
         return array(
             KernelEvents::REQUEST => array(array('onKernelRequest', 1)),
         );
+    }
+
+    /**
+     * @param array $allowedLocales
+     */
+    public function setAllowedLocales($allowedLocales)
+    {
+        $this->allowedLocales = $allowedLocales;
     }
 
 }
