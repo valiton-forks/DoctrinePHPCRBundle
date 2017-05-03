@@ -156,4 +156,13 @@ class LocaleListener implements EventSubscriberInterface
             KernelEvents::REQUEST => array(array('onKernelRequest', 1)),
         );
     }
+
+    /**
+     * @param array $allowedLocales
+     */
+    public function setAllowedLocales($allowedLocales)
+    {
+        $this->allowedLocales = $allowedLocales;
+    }
+
 }
