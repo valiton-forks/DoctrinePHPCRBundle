@@ -132,4 +132,12 @@ class LocaleListener implements EventSubscriberInterface
         );
     }
 
+    /**
+     * @param array $allowedLocales
+     */
+    public function setAllowedLocales($allowedLocales)
+    {
+        $this->allowedLocales = $allowedLocales;
+    }
+
 }
